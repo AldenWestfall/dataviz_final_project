@@ -9,4 +9,75 @@ output:
 
 # Data Visualization Project 01
 
-_revised version of mini-project 01 goes here_
+&nbsp;&nbsp;&nbsp;&nbsp; Originally when creating my visualizations I wanted to explore the relationship between IMDB ratings and revenue from each movie. I choose this visual becasue it shows the relationship between revenue and the IMDB rating of each movie. This highlights the correlation that higher rated movies are usually the ones making the most revenue; naturally bad movies have a difficult time drawing viewers. Still, there are plenty of movies that scored high on their scale that did have high revenue. But compared to the total data set there is not a strong pattern. This is evident because there are plenty of movies that scored higher than an 8 but still made little to no profit.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(scales)
+data <- read_csv("https://raw.githubusercontent.com/aalhamadani/datasets/refs/heads/main/IMDB_movies.csv",show_col_types = FALSE)
+```
+
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE,}
+data %>%
+ggplot(aes(x= Rating, y= `Revenue (Millions)`)) +
+  geom_point(alpha= 0.6, size = 2) +
+  scale_y_continuous(label= dollar_format(suffix= "M", prefix= "$")) +
+  labs(
+    title= "Movie Revenue by IMDB Ratings",
+    x= "IMDB Rating",
+    y= "Revenue"
+  )
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp; After that analysis I wondered what genres performed the best. This visual showcases average movie ratings for each genre and does a good job highlighting the trends of IMDB rating through the years for each genre. The primary issue I faced is there was not a singular genre variable within the data set. I had to clean the field by pulling the primary genre offered in a list of every fitting genre. Thankfully the primary genre was the first in the list, so I simply spliced out anything that was after the first comma. Looking at the visual, we can see that Biographies, animations, and adventure movies are consistently the highest rated genre throughout the years analyzed. On the other hand, horrors and comedies are consistently the lowest scoring genres. 
+
+```{r, echo=FALSE}
+data <- data %>%
+  mutate(
+    Primary_Genre = str_trim(str_extract(Genre, "^[^,]+")),
+  )
+```
+
+```{r,echo=FALSE, message=FALSE, warning=FALSE,}
+data %>%
+  group_by(Primary_Genre,Year) %>%
+  filter(Year >= 2012) %>%
+  summarise(AVG_Rating= mean(Rating)) %>%
+  select(Primary_Genre, AVG_Rating, Year) %>%
+  ggplot(aes(x=Primary_Genre, y= AVG_Rating, )) +
+  geom_col(fill="steelblue") +
+  coord_flip() +
+  geom_text(aes(label= round(AVG_Rating,1)),hjust= 2, size= 3.5, color= "white") +
+  facet_wrap(~ Year, nrow=1) +
+  labs(
+    y="Average Rating",
+    x="Primary Genre",
+    title="Average Movie Ratings by Genre Per Year"
+  ) +
+  theme(axis.text.x = element_text(hjust= 1))
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp; When considering the amount of data missing from the genres scoring analysis, I was curious the number of movies being put out each year for each genre. The heatmap I created visualizes this in a way that is easy to digest. Heatmaps make it easy to pinpoint outliers and it does a great job in this scenario. I opted for a black and white style that helps both large and small movie count genres stand out evenb more. We can see there is minimal market for sci-fi, thriller, romance, and fantasy films throughout the years. Meanwhile, there are plenty of drama, comedy and action films being created each year. This makes sense because they are the most consistent genre within the rating comparison visualization. Although this breakdown is interesting, it does highlight the discrepancy between the number of data points in each genre. If this dataset was more balanced it is likely that more accurate and interesting conclusions could be made from these visualizations.
+
+```{r,echo=FALSE}
+data %>%
+  filter(Year>=2012 ) %>%
+  count(Year, Primary_Genre) %>%
+  ggplot(aes(x= Year, y= Primary_Genre, fill= n)) +
+  geom_tile(color= "white", linewidth= 0.4) +
+  geom_text(aes(label= n), size= 3, color= "white") +
+  scale_fill_gradient(low= "grey", high= "black", name = "Movie Count") +
+  scale_x_continuous(breaks= 2006:2016) +
+  labs(
+    x = "Year",
+    y = "Genre",
+    title = "Movie Count by Genre Per Year (2012–2016)"
+    ) +
+  theme_minimal()
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp; With what we have, we can conclude that ratings do not correlate directly to high revenue, although the quality of the movie is important. Movies that are rated over a 6 are more likely to generate higher revenue compared to those lacking behind. With that in mind, looking at the genre break down we can see that there are genres that have higher ratings than others. Biographies and animations consistently have an average score of 7 and above. Action, Drama, and Comedy movies see the most quantity of movies create throughout each year in the dataset. Each of them float around the 6 to 7 rating average which puts them right on the cusps of the group that sees the most revenue.
