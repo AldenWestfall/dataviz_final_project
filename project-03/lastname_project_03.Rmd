@@ -19,6 +19,7 @@ Using the dataset obtained from FSU's [Florida Climate Center](https://climatece
 
 ```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
+library(lubridate)
 weather_tpa <- read_csv("https://raw.githubusercontent.com/aalhamadani/datasets/master/tpa_weather_2022.csv")
 # random sample 
 sample_n(weather_tpa, 4)
@@ -34,6 +35,27 @@ Using the 2022 data:
 knitr::include_graphics("https://raw.githubusercontent.com/aalhamadani/dataviz_final_project/main/figures/tpa_max_temps_facet.png")
 ```
 
+```{r}
+weather_tpa2 <- weather_tpa %>%
+  filter(year == 2022) %>%
+  mutate(date = make_date(year, month, day), month = factor(month(date, label = TRUE, abbr = FALSE), levels = month.name)) 
+
+  ggplot(weather_tpa2, aes(x = max_temp, fill = month)) +
+  geom_histogram(binwidth = 5, color = "white", show.legend = FALSE) +
+  facet_wrap(~ month, ncol = 4) +
+  scale_fill_viridis_d(option = "viridis") +
+  scale_x_continuous(breaks = seq(60, 90, by = 10)) +
+  scale_y_continuous(limits = c(0, 20)) +
+  labs(
+    x = "Maximum temperatures",
+    y = "Number of Days"
+  ) +
+  theme_bw()
+```
+
+
+
+
 Hint: the option `binwidth = 3` was used with the `geom_histogram()` function.
 
 (b) Create a plot like the one below:
@@ -41,6 +63,21 @@ Hint: the option `binwidth = 3` was used with the `geom_histogram()` function.
 ```{r, echo = FALSE, out.width="80%", fig.align='center'}
 knitr::include_graphics("https://raw.githubusercontent.com/aalhamadani/dataviz_final_project/main/figures/tpa_max_temps_density.png")
 ```
+
+```{r}
+weather_tpa2 %>%
+  ggplot(aes(x = max_temp)) +
+  geom_density(fill = "gray50", color = "black", bw = 0.5) +
+  scale_x_continuous(limits = c(57, 96)) +
+  scale_y_continuous(limits = c(0, 0.08)) + 
+  labs(
+    x = "Maximum temperature",
+    y = "density"
+  ) +
+  theme_bw()
+```
+
+
 
 Hint: check the `kernel` parameter of the `geom_density()` function, and use `bw = 0.5`.
 
@@ -50,6 +87,25 @@ Hint: check the `kernel` parameter of the `geom_density()` function, and use `bw
 knitr::include_graphics("https://raw.githubusercontent.com/aalhamadani/dataviz_final_project/main/figures/tpa_max_temps_density_facet.png")
 ```
 
+
+```{r}
+weather_tpa2 %>%
+  ggplot(aes(x = max_temp, fill = month)) +
+  geom_density(color = "black", show.legend = FALSE) +
+  scale_y_continuous(breaks = seq(0, 0.25, by = 0.05), limits = c(0, 0.30)) +
+  facet_wrap(~ month, ncol = 4) +
+  scale_fill_viridis_d(option = "viridis") +
+  scale_x_continuous(breaks = seq(60, 90, by = 10)) +
+  labs(
+    title = "Density plots for each month in 2022",
+    x = "Maximum temperatures",
+    y = NULL
+  ) +
+  theme_bw()
+```
+
+
+
 Hint: default options for `geom_density()` were used. 
 
 (d) Generate a plot like the chart below:
@@ -58,6 +114,30 @@ Hint: default options for `geom_density()` were used.
 ```{r, echo = FALSE, out.width="80%", fig.align='center'}
 knitr::include_graphics("https://raw.githubusercontent.com/aalhamadani/dataviz_final_project/main/figures/tpa_max_temps_ridges_plasma.png")
 ```
+
+```{r}
+library(ggridges)
+
+weather_tpa %>%
+  mutate(month = factor(month, levels = 1:12, labels = month.name)) %>%
+  ggplot(aes(x = max_temp, y = month, fill = after_stat(x))) +
+  geom_density_ridges_gradient(
+    scale = 3,
+    rel_min_height = 0.01,
+    quantile_lines = TRUE,
+    quantiles = 2,
+    color = "black"
+  ) +
+  scale_fill_viridis_c(option = "plasma", name = NULL) +
+  scale_x_continuous(breaks = seq(50, 100, by = 10), limits = c(50, 100)) +
+  labs(
+    x = "Maximum temperature (in Fahrenheit degrees)",
+    y = NULL
+  ) +
+  theme_bw()
+```
+
+
 
 Hint: use the`{ggridges}` package, and the `geom_density_ridges()` function paying close attention to the `quantile_lines` and `quantiles` parameters. The plot above uses the `plasma` option (color scale) for the _viridis_ palette.
 
@@ -89,57 +169,28 @@ Make sure to include a copy of the dataset in the `data/` folder, and reference 
 (to get the "raw" data from any of the links listed above, simply click on the `raw` button of the GitHub page and copy the URL to be able to read it in your computer using the `read_csv()` function)
 
 
-### Option (B): Data on Concrete Strength 
-
-Concrete is the most important material in **civil engineering**. The concrete compressive strength is a highly nonlinear function of _age_ and _ingredients_. The dataset used here is from the [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/index.php), and it contains 1030 observations with 9 different attributes 9 (8 quantitative input variables, and 1 quantitative output variable). A data dictionary is included below: 
-
-
-Variable                      |    Notes                
-------------------------------|-------------------------------------------
-Cement                        | kg in a $m^3$ mixture             
-Blast Furnace Slag            | kg in a $m^3$ mixture  
-Fly Ash                       | kg in a $m^3$ mixture             
-Water                         | kg in a $m^3$ mixture              
-Superplasticizer              | kg in a $m^3$ mixture
-Coarse Aggregate              | kg in a $m^3$ mixture
-Fine Aggregate                | kg in a $m^3$ mixture      
-Age                           | in days                                             
-Concrete compressive strength | MPa, megapascals
-
-
-Below we read the `.csv` file using `readr::read_csv()` (the `readr` package is part of the `tidyverse`)
+```{r}
+df <- read_csv('https://raw.githubusercontent.com//aalhamadani//dataviz_final_project//main/data//BB_top100_2015.csv')
+df
+```
 
 ```{r}
-concrete <- read_csv("../data/concrete.csv", col_types = cols())
+df %>%
+  mutate(Lyrics = str_to_lower(Lyrics)) %>%
+  mutate(word = str_split(Lyrics, "\\s+")) %>%
+  unnest(word) %>%
+  filter(word == "love") %>%
+  count(Song, Artist, word, sort = TRUE) %>%
+  slice_head(n = 20) %>%
+  mutate(label = paste(Artist, " - ", Song)) %>%
+  ggplot(aes(x = reorder(label, n), y = n, fill = n)) +
+  geom_col(show.legend = FALSE) +
+  coord_flip() +
+  scale_fill_viridis_c(option = "plasma") +
+  labs(
+    title = 'Songs Using "Love" Most in BB100(2015)',
+    x = NULL,
+    y = 'Count of "love"'
+  ) +
+  theme_bw()
 ```
-
-
-Let us create a new attribute for visualization purposes, `strength_range`: 
-
-```{r}
-new_concrete <- concrete %>%
-  mutate(strength_range = cut(Concrete_compressive_strength, 
-                              breaks = quantile(Concrete_compressive_strength, 
-                                                probs = seq(0, 1, 0.2))) )
-```
-
-
-
-1. Explore the distribution of 2 of the continuous variables available in the dataset. Do ranges make sense? Comment on your findings.
-
-2. Use a _temporal_ indicator such as the one available in the variable `Age` (measured in days). Generate a plot similar to the one shown below. Comment on your results.
-
-```{r, echo = FALSE, out.width="80%", fig.align='center'}
-knitr::include_graphics("https://raw.githubusercontent.com/aalhamadani/dataviz_final_project/main/figures/concrete_strength.png")
-```
-
-
-3. Create a scatterplot similar to the one shown below. Pay special attention to which variables are being mapped to specific aesthetics of the plot. Comment on your results. 
-
-```{r, echo = FALSE, out.width="80%", fig.align='center'}
-knitr::include_graphics("https://raw.githubusercontent.com/aalhamadani/dataviz_final_project/main/figures/cement_plot.png")
-```
-
-
-
-
