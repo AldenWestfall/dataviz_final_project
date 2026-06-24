@@ -20,6 +20,7 @@ Using the dataset obtained from FSU's [Florida Climate Center](https://climatece
 ```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(lubridate)
+library(plotly)
 weather_tpa <- read_csv("https://raw.githubusercontent.com/aalhamadani/datasets/master/tpa_weather_2022.csv")
 # random sample 
 sample_n(weather_tpa, 4)
@@ -137,13 +138,57 @@ weather_tpa %>%
   theme_bw()
 ```
 
-
-
 Hint: use the`{ggridges}` package, and the `geom_density_ridges()` function paying close attention to the `quantile_lines` and `quantiles` parameters. The plot above uses the `plasma` option (color scale) for the _viridis_ palette.
+
+
+## Recreated Interactive Version
+
+```{r}
+weather_tpa %>%
+  mutate(month = factor(month, levels = 1:12, labels = month.name)) %>%
+  plot_ly(x = ~max_temp, color = ~month,
+          colors = "plasma", type = "violin",
+          box = list(visible = TRUE),
+          meanline = list(visible = TRUE)) %>%
+  layout(
+    title = "Max Temperature by Month",
+    xaxis = list(title = "Maximum temperature (in Fahrenheit degrees)"),
+    yaxis = list(title = ""),
+    updatemenus = list(
+      list(
+        type = "dropdown",
+        buttons = lapply(month.name, function(m) {
+          list(method = "restyle",
+               args = list("visible", as.list(month.name == m)),
+               label = m)
+        })
+      )
+    )
+  )
+```
+
+### The new version make it much more easy to read by spacing out each month. Additionally, the interactivity gives better summary statistics for each month when rolling over it.
+
 
 
 (e) Create a plot of your choice that uses the attribute for precipitation _(values of -99.9 for temperature or -99.99 for precipitation represent missing data)_.
 
+```{r}
+weather_tpa2 %>%
+  filter(precipitation != -99.9) %>%
+  ggplot(aes(x = month, y = precipitation)) +
+  geom_col(show.legend = FALSE) +
+  scale_y_continuous(limits = c(0, 1.5)) +
+  labs(
+    title = "Total Precipitation in 2022 by Month in Tampa",
+    x = NULL,
+    y = "Precipitation in Inches"
+  ) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
 
 
 ## PART 2 
