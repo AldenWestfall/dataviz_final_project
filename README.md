@@ -11,7 +11,7 @@ The following is a sample of products created during the _"Data Visualization an
 In the `project_01/` folder you can find an analysis on movies from 2012-2016 and there IMDB ratings. The analysis breaks down the coorelation of IMDB rating to revenue, looks at the average rating among genres thorughuot the years, and the spread of movies made for each genre thorughout the years. The goals was to better understand movie trends during this time and see if there is any coorealtiong to a successful movie based on revenue.
 **Sample data visualization:** 
 
-![](C:\Users\Aweso\Documents\GitHub\dataviz_final_project\figures\1-2.png)
+![](https://raw.githubusercontent.com/AldenWestfall/dataviz_final_project/refs/heads/main/figures/1-2.png)
 
 
 ## Project 02
@@ -20,7 +20,7 @@ In this project, I explored the last game of each NBA Finals matchup from 1980 t
 
 **Sample data visualization:** 
 
-![](C:\Users\Aweso\Documents\GitHub\dataviz_final_project\figures\2-1.png)
+![](https://raw.githubusercontent.com/AldenWestfall/dataviz_final_project/refs/heads/main/figures/2-1.png)
 
 (you can place your figures in the `figures/` folder and use the `![](path_to_picture)` option to add the pictures here)
 
@@ -32,7 +32,7 @@ In this project, I explored how to recreate visualization created by Professor A
 **Sample data visualization:** 
 
 _[include your favorite visualization from this project here]_
-![](C:\Users\Aweso\Documents\GitHub\dataviz_final_project\figures\3-6.png)
+![](https://raw.githubusercontent.com/AldenWestfall/dataviz_final_project/refs/heads/main/figures/3-6.png)
 
 
 ### Moving Forward
