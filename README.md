@@ -9,7 +9,6 @@ The following is a sample of products created during the _"Data Visualization an
 ## Project 01
 
 In the `project_01/` folder you can find an analysis on movies from 2012-2016 and there IMDB ratings. The analysis breaks down the coorelation of IMDB rating to revenue, looks at the average rating among genres thorughuot the years, and the spread of movies made for each genre thorughout the years. The goals was to better understand movie trends during this time and see if there is any coorealtiong to a successful movie based on revenue.
-**Sample data visualization:** 
 
 ![](https://raw.githubusercontent.com/AldenWestfall/dataviz_final_project/refs/heads/main/figures/1-2.png)
 
@@ -18,20 +17,13 @@ In the `project_01/` folder you can find an analysis on movies from 2012-2016 an
 
 In this project, I explored the last game of each NBA Finals matchup from 1980 to 2018. I started with a map of the U.S. showing each winner's location with a dot. The dot's size cooresponds to how many championships they won. From there, I created an intereactive column chart that showcases each statistic for the winning team thorugh each year. The stats available include points, assists, blolcks, steals, rebounds, and more. From there, a linear model was created to understand if home court advantage influenced the number of points scored by the winning team. Find the code and report in the `project_02/` folder.
 
-**Sample data visualization:** 
-
 ![](https://raw.githubusercontent.com/AldenWestfall/dataviz_final_project/refs/heads/main/figures/2-1.png)
-
-(you can place your figures in the `figures/` folder and use the `![](path_to_picture)` option to add the pictures here)
 
 
 ## Project 03
 
 In this project, I explored how to recreate visualization created by Professor Alhamadani. Overall, it was interesting to see his design choices and helped me understand the nuance of replicating visualizations in R. Additionally, I scraped data from a large string to quantify which songs used the word "Love" most among the Billboard Top 100 for 2015. Find the code and report in the `project_03/` folder.
 
-**Sample data visualization:** 
-
-_[include your favorite visualization from this project here]_
 ![](https://raw.githubusercontent.com/AldenWestfall/dataviz_final_project/refs/heads/main/figures/3-6.png)
 
 
