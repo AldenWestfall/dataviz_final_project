@@ -1,0 +1,151 @@
+---
+title: "Mini-Project 02"
+output: 
+  html_document:
+    keep_md: true
+    toc: true
+    toc_float: true
+---
+
+# Data Visualization Project 02
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(sf)
+library(plotly)
+library(ggrepel)
+```
+
+```{r, message=FALSE, warning=FALSE}
+df <- read_csv("C:\\Users\\Aweso\\Documents\\GitHub\\dataviz_final_project\\data\\NBAchampionsdata_with_locations.csv")
+df
+```
+
+In order to get this data in a working order, I had to enrich the data with location information for each team. This process was done through ChatGPT by asking it to add city and state information to the data set. Overall, the creation of these visualizations went relatively smooth after enriching the data. The most difficult part was navigating the map graph in terms of syntax for the geom_sf part of the code. 
+
+I applied the principles of data visualization and design by creating these visualizations with a clear purpose in mind. Each visualization has a single goal and is congruent on a common visual theme. Combining these three visuals allows the reader to understand the performance of each team and how they succeeded within the finals.
+
+I think this data set is a little rough to deal with. It houses plenty of information on a per game basis but doesn't give any information about the other team. This makes it hard to draw cohesive conclusions due to the lack of information on how the other team performed. Supplying the other team's stats would aid in understanding where each team fell short and where they succeeded
+
+
+```{r, message=FALSE, warning=FALSE, fig.alt="A revamped map of the U.S. showcasing the NBA Final Championship Wins by City. Each city is represented by a dot on the map that is scaled with the number of wins along with a more clear label."}
+finals <- df %>%
+  filter(Win == 1) %>%
+  group_by(Year, Team, City, Longitude, Latitude) %>%
+  summarise(games_won = n(), .groups = "drop") %>%
+  group_by(Year) %>%
+  slice_max(games_won, n = 1, with_ties = FALSE) %>%
+  ungroup()
+
+city_wins <- finals %>%
+  group_by(City, Longitude, Latitude, Team) %>%
+  summarise(wins = n(), .groups = "drop") %>%
+  group_by(City) %>%
+  slice_max(wins, n = 1) %>%
+  ungroup()
+
+us_states <- st_as_sf(maps::map("state", plot = FALSE, fill = TRUE))
+
+city_sf <- city_wins %>%
+  st_as_sf(coords = c("Longitude", "Latitude"), crs = 4326)
+
+
+ggplot() +
+  geom_sf(data = us_states, fill = "grey", colour = "white") +
+  geom_sf(data = city_sf, aes(size = wins, colour = Team)) +
+  geom_label_repel(
+    data = city_wins,
+    aes(x = Longitude, y = Latitude, label = paste0(City, " (", wins, ")")),
+    size = 3,
+    box.padding = 0.5,      # space around label
+    point.padding = 0.3,    # space between label and point
+    segment.color = "gray50" # line connecting label to point
+  ) +
+  scale_colour_viridis_d(name = "Team") +
+  scale_size_continuous(range = c(3, 10), guide = "none") +
+  coord_sf(xlim = c(-125, -66), ylim = c(24, 50)) +
+  labs(title = "NBA Final Championship Wins by City") +
+  theme_minimal() +
+  theme(axis.title = element_blank())
+```
+
+The map I created displays the number of playoff final wins each team has gotten between 1980 and 2018. This dot plot size is dependent on the number of wins each team has gotten. Additionally, the color of the dot showcases the team's primary color and help identify them. I feel this visualization is intersting because it highlights two dominate states within the time-frame. California has two teams and a total of 13 final playoff wins. Meanwhile, Texas has three teams with 8 total final playoff wins. This showcases the domincance the teams in California had during this period, especially considering the Lakers have the most final wins within the data set.
+
+
+```{r, message=FALSE, warning=FALSE,fig.alt="An interactive column chart that breaks down the final game stats of each year. The interactivity allows you to select each individual stat line."}
+final_games <- df %>%
+  filter(Win == 1) %>%
+  group_by(Year) %>%
+  slice_max(Game, n = 1) %>%
+  ungroup()
+
+plot_ly(final_games, x = ~Year, y = ~TP, type = "bar", color = ~Team, colors = viridis::viridis(n_distinct(final_games$Team))) %>%
+  layout(updatemenus = list(list(type = "dropdown", buttons = list(
+          list(method = "restyle", args = list("y", list(final_games$TPP)),  label = "3 Point %"),
+          list(method = "restyle", args = list("y", list(final_games$FG)),   label = "Field Goals"),
+          list(method = "restyle", args = list("y", list(final_games$FGP)),  label = "Field Goal %"),
+          list(method = "restyle", args = list("y", list(final_games$FT)),   label = "Free Throws"),
+          list(method = "restyle", args = list("y", list(final_games$FTP)),  label = "Free Throw %"),
+          list(method = "restyle", args = list("y", list(final_games$PTS)),  label = "Points"),
+          list(method = "restyle", args = list("y", list(final_games$AST)),  label = "Assists"),
+          list(method = "restyle", args = list("y", list(final_games$BLK)),  label = "Blocks"),
+          list(method = "restyle", args = list("y", list(final_games$STL)),  label = "Steals"),
+          list(method = "restyle", args = list("y", list(final_games$TRB)),  label = "Total Rebounds"),
+          list(method = "restyle", args = list("y", list(final_games$ORB)),  label = "Offensive Rebounds"),
+          list(method = "restyle", args = list("y", list(final_games$DRB)),  label = "Defensive Rebounds"),
+          list(method = "restyle", args = list("y", list(final_games$TOV)),  label = "Turnovers")
+        )
+      )
+    )
+  )
+```
+
+This interactive visualization showcases a breakdown of Final game stats through the years that are crucial within the game of basketball. This helps understand how the game has evolved over the years and paints the picture of how the teams performed during the final game each year. For instance, when looking at the number of free throws points, we can see outliers at 43 for both the 1988 Lakers, the 1997 Bulls, and the 2014 Spurs. This highlights that they may have relied more on getting fouled and scoring points at the line then other teams. Insights like these is what makes this visualization intersting. 
+
+```{r, message=FALSE, warning=FALSE,fig,alt="A dot plot with a trend line depicting Points Scored Over Time Predicted vs Actual by Home/Away."}
+model <- lm(PTS ~ Year + Home, data = df)
+
+df$predicted <- predict(model)
+
+df %>%
+  ggplot(aes(x = Year, y = PTS, colour = factor(Home))) +
+  geom_point(alpha = 0.4) +
+  geom_line(aes(y = predicted, group = factor(Home)), linewidth = 1) +
+  scale_colour_manual(values = c("0" = "red", "1" = "blue"), labels = c("0" = "Away", "1" = "Home"), name = "Location") +
+  labs(title = "Points Scored Over Time Predicted vs Actual, by Home/Away", x = "Year", y = "Points") +
+  theme_minimal()
+
+```
+
+Lastly, I was interested in exploring whether being home or away had an influence on points scored in the final game. With this graph we can see that it's evident that being home or away has a statistically significant effect on points scored for the wining team. Additionally, we can see that there is a consistent down trend in the number of points being scored as the years go on. Despite these takeaways, being home or away onl;y accounts for 8.3% of the variation. There are still plenty of other variables at play that draw more correlation to points being scored. Things like player match-ups, plays, and other situation variables have much more to do with the number of points being scored than something like being at home court does.
+
+```{r, message=FALSE, warning=FALSE,fig.alt="Summary of the primart model that gives statisical information about the first model"}
+summary(model)
+model2 <- lm(PTS ~ Year + Home + TRB + TOV + TPP, data = df)
+```
+
+
+```{r, message=FALSE, warning=FALSE,fig.alt="Summary of a secondary model that gives statisical information about model2"}
+summary(model2)
+```
+Within the second model, I added total rebounds, turnovers, and three-point percentages and it definitely drives home additional value into the model. This now over doubles the R^2 meaning it takes into account 19% of the variation. Even still, at 19% there is plenty of other variables at hand in a basketball game that contribute to the overall number of points being scored.
+
+
+
+## Previous Version
+
+```{r, message=FALSE, warning=FALSE, fig.alt="A map of the U.S. showcasing the NBA Final Championship Wins by City. Each city is represented by a dot on the map that is scaled with the number of wins along with a label."}
+ggplot() +
+  geom_sf(data = us_states, fill = "grey", colour = "white") +
+  geom_sf(data = city_sf, aes(size = wins, colour = Team)) +
+  geom_sf_text(data = city_sf, aes(label = paste0(City, " (", wins, ")")), vjust = 2, size = 3) +
+ scale_colour_viridis_d(name = "Team") +
+  scale_size_continuous(range = c(3, 10), guide = "none") +
+  coord_sf(xlim = c(-125, -66), ylim = c(24, 50)) +
+  labs(title = "NBA Final Championship Wins by City") +
+  theme_minimal()
+```
+
+The new version of this map is better because is spaces out the labels in a way where they are no longer overlapping. This makes it much more readable and easier to understand for the viewer.
